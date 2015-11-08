@@ -35,4 +35,3 @@ mv -f out.bai $4$grp_id/out.bai;
 rm tmpIn.ubam  un.fq empty.sam  empty.ubam
  
 echo "$(date "+%T %D") Moving done";
-~                           
