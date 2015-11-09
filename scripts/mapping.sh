@@ -1,6 +1,6 @@
 #!/bin/bash
 # USING 
-# ./bwa.sh <BAM FILE PATH> <NUMBER OF THREADS> <REFERENCE GENOME> <OUTPUT DIR> <READ_GROUP> <GROUP_ID>
+# ./bwa.sh <BAM FILE PATH> <NUMBER OF THREADS> <REFERENCE GENOME> <OUTPUT DIR> <READ_GROUP> <GROUP_ID> <CHR_NUM>
 #
 
 #read_grp=$(samtools view -H $1 | grep '^@RG'| uniq | sed 's/\t/\\t/g' | grep 'ID:');
@@ -8,8 +8,11 @@
 
 read_grp=$5
 grp_id=$6
+chr_num=$7
 
-samtools view -f 2 -u -r $grp_id $1 X > tmpIn.ubam;
+
+samtools view -f 2 -u -r $grp_id $1 $chr_num > tmpIn.ubam;
+
 touch empty.sam && echo -e $read_grp >> empty.sam;
 
 samtools view -u $1 "empty_region" > empty.ubam 2> /dev/null;
@@ -24,14 +27,16 @@ bwa mem -p -M -t $2 -R "$read_grp" $3 - | \
 samtools view -Shu - | \
 samtools sort    -o -l 0 -@ 4 - _sort > out.bam;
 
-mkdir -p $4$grp_id
+mkdir -p $4$grp_id"_chr_"$chr_num
 
 [[ ! -a out.bam ]] && (samtools view -Sb empty.sam > out.bam 2> /dev/null) || true;
+
 samtools index out.bam out.bai;
+
 echo "$(date "+%T %D") Moving files to Storage";
-mv -f out.bam $4$grp_id/out.bam;
-mv -f out.bai $4$grp_id/out.bai;
+mv -f out.bam $4$grp_id"_chr_"$chr_num/out.bam;
+mv -f out.bai $4$grp_id"_chr_"$chr_num/out.bai;
 
 rm tmpIn.ubam  un.fq empty.sam  empty.ubam
- 
+
 echo "$(date "+%T %D") Moving done";
